@@ -1,0 +1,22 @@
+{
+  "name": "tictactoe-server",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node --exec babel-node --presets babel-preset-env app.js",
+    "dev": "nodemon --exec babel-node --presets babel-preset-env --delay 1500ms app.js"
+  },
+  "dependencies": {
+    "axios": "^0.21.1",
+    "body-parser": "^1.18.3",
+    "dotenv": "^8.2.0",
+    "express": "^4.16.4"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.3",
+    "babel-loader": "^8.2.2",
+    "babel-preset-env": "^1.7.0",
+    "nodemon": "^2.0.4"
+  }
+}
