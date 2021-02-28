@@ -36,23 +36,24 @@ router.post("/auth", (req, res) => {
     });
 });
 
-router.get("/riot-games/val/leaderboard", (req, res) => {
-  console.log("", req.query.actID);
-
+router.post("/engine", (req, res) => {
+  const { token, board } = req.body;
   const options = {
-    method: "get",
+    method: "post",
     url:
-      process.env.RIOT_API_BASE_URL +
-      "/val/ranked/v1/leaderboards/by-act/" +
-      req.query.actID +
-      "?locale=en-US&size=50&startIndex=0",
+      "https://d9u7x85vp9.execute-api.us-east-2.amazonaws.com/production/engine",
     headers: {
-      "X-Riot-Token": process.env.RIOT_API_KEY,
+      'Authorization': `Bearer ${token}`
     },
+    data: {
+      board: board,
+    },
+    
   };
 
   axios(options)
     .then((response) => {
+      console.log(response.data);
       res.send(response.data);
     })
     .catch((error) => {

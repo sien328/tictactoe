@@ -39,7 +39,7 @@ class Authorize extends Component {
       body = JSON.parse(body);
 
       if (body.success) {
-        window.sessionStorage.setItem("ticTacToeUserToken", body.token);
+        sessionStorage.setItem("ticTacToeUserToken", body.token);
         this.setState({ authenticated: true });
         this.props.history.push("/tictactoe");
       }
