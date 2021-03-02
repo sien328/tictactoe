@@ -1,23 +1,45 @@
 import React, { Component } from "react";
 import { Button, Container } from "reactstrap";
+import _ from 'lodash';
 import Square from "./square";
+
+const initalState = {
+  board: [
+    ["", "", ""],
+    ["", "", ""],
+    ["", "", ""],
+  ],
+  turnNumber: 1,
+  gameEnded: false,
+  playAI: true,
+  waitingTurn: false,
+  winner: "",
+}  
 
 class TicTacToeGame extends Component {
 
-  state = {
-    board: [
-      ["", "", ""],
-      ["", "", ""],
-      ["", "", ""],
-    ],
-    turnNumber: 1,
-    gameEnded: false,
-    playAI: true,
-    waitingTurn: false,
-    winner: "",
-  };
+  constructor(props) {
+    super(props);
+    this.initalState = {
+      board: [
+        ["", "", ""],
+        ["", "", ""],
+        ["", "", ""],
+      ],
+      turnNumber: 1,
+      gameEnded: false,
+      playAI: true,
+      waitingTurn: false,
+      winner: "",
+    } 
+    this.state = _.cloneDeep(this.initalState);
+}
 
-  componentDidMount() {}
+  state = _.cloneDeep(initalState);
+
+  componentDidMount() {
+   
+  }
 
   componentDidUpdate(prevState) {
     const {
@@ -106,6 +128,7 @@ class TicTacToeGame extends Component {
       board[r][c] = "O";
     }
     this.setState({ board: board });
+    console.log("updating board!!");
   };
 
   determineWinner = (isEndGame) => {
@@ -259,8 +282,10 @@ class TicTacToeGame extends Component {
 
   onResetClick = (e) => {
     e.preventDefault();
-    console.log(this.state);
-    // this.setState(this.baseState, console.log(this.state));
+  
+    this.setState(() => {
+      return _.cloneDeep(this.initalState);
+    });
   };
 
   render() {
