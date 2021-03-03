@@ -1,21 +1,8 @@
 import React, { Component } from "react";
-import { Button, Container } from "reactstrap";
-import _ from 'lodash';
+import { Button, Container, Spinner } from "reactstrap";
+import _ from "lodash";
 import Square from "./square";
-
-const initalState = {
-  board: [
-    ["", "", ""],
-    ["", "", ""],
-    ["", "", ""],
-  ],
-  turnNumber: 1,
-  gameEnded: false,
-  playAI: true,
-  waitingTurn: false,
-  winner: "",
-}  
-
+import AlertMessage from "./alert-message";
 class TicTacToeGame extends Component {
 
   constructor(props) {
@@ -30,16 +17,14 @@ class TicTacToeGame extends Component {
       gameEnded: false,
       playAI: true,
       waitingTurn: false,
+      message: "Welcome to Tic Tac Toe",
       winner: "",
-    } 
+      highLightSpaces: []
+    };
     this.state = _.cloneDeep(this.initalState);
-}
-
-  state = _.cloneDeep(initalState);
-
-  componentDidMount() {
-   
   }
+
+  componentDidMount() {}
 
   componentDidUpdate(prevState) {
     const {
@@ -57,31 +42,8 @@ class TicTacToeGame extends Component {
       !waitingTurn
     ) {
       if (playAI && !gameEnded && turnNumber % 2 == 0) {
-        console.log("AI turn:", turnNumber);
         this.promptAPIForMove(board);
       }
-    }
-
-    // Game states
-    if (!gameEnded) {
-      if (waitingTurn !== prevState.waitingTurn && waitingTurn) {
-        console.log("Waiting for opponent move...");
-      }
-
-      if (
-        turnNumber !== prevState.turnNumber &&
-        waitingTurn !== prevState.waitingTurn &&
-        !waitingTurn
-      ) {
-        if (turnNumber % 2 == 1) {
-          console.log("It's your turn!");
-        }
-      }
-    }
-
-    if (gameEnded || (gameEnded == null && winner !== prevState.winner)) {
-      if (gameEnded !== null) console.log(`Winner is ${winner}!`);
-      else console.log("Draw!");
     }
   }
 
@@ -95,8 +57,8 @@ class TicTacToeGame extends Component {
       if (e) {
         // click place
         space = e.target;
-        r = space.getAttribute("data-r");
-        c = space.getAttribute("data-c");
+        r = parseInt(space.getAttribute("data-r"));
+        c = parseInt(space.getAttribute("data-c"));
       } else {
         // coordinate place
         r = row;
@@ -108,39 +70,42 @@ class TicTacToeGame extends Component {
       // console.log("turn:", turnNumber);
       // console.log(space.innerText);
 
-      if (space.innerText === "") {
-        // move is open
-        this.updateBoardState(r, c);
-        let isEndGame = this.checkGameEndingMove(r, c);
-        this.determineWinner(isEndGame);
-        if (!isEndGame) {
-          this.incrementTurn();
+      if (space) {
+        if (!space.innerText) {
+          // move is open
+          this.updateBoardState(r, c);
+          let isEndGame = this.checkGameEndingMove(r, c);
+          this.determineWinner(isEndGame);
+          if (!isEndGame) {
+            this.incrementTurn();
+          }
         }
       }
     }
   };
 
   updateBoardState = (r, c) => {
-    let { board } = this.state;
-    if (this.state.turnNumber % 2 == 1) {
+    let { turnNumber, board } = this.state;
+    if (turnNumber % 2 == 1) {
       board[r][c] = "X";
+      console.log(`Turn# ${turnNumber} - Player X move to row:${r}  col:${c}`);
     } else {
       board[r][c] = "O";
+      console.log(`Turn# ${turnNumber} - Player O move to row:${r}  col:${c}`);
     }
     this.setState({ board: board });
-    console.log("updating board!!");
   };
 
   determineWinner = (isEndGame) => {
     const { turnNumber } = this.state;
     if (isEndGame || isEndGame == null) {
       //null - draw
-      if (turnNumber % 2 == 1) {
-        this.setState({ winner: "X" });
+      if (isEndGame == null) {
+        this.setState({ winner: "Draw!" });
+      } else if (turnNumber % 2 == 1) {
+        this.setState({ winner: "You Win!" });
       } else if (turnNumber % 2 == 0) {
-        this.setState({ winner: "O" });
-      } else if (isEndGame == null) {
-        this.setState({ winner: "draw" });
+        this.setState({ winner: "AI win!" });
       }
       this.setState({ gameEnded: isEndGame });
     }
@@ -216,7 +181,6 @@ class TicTacToeGame extends Component {
   };
 
   promptAPIForMove = async (board) => {
-    console.log("promptAPI");
     const token = sessionStorage.getItem("ticTacToeUserToken");
     const response = await fetch("/engine", {
       method: "POST",
@@ -235,9 +199,17 @@ class TicTacToeGame extends Component {
 
     if (body.success) {
       // console.log(body.board);
-      let move = this.findBoardDifference(board, body.board);
       // console.log(move);
+
+      let move = this.findBoardDifference(board, body.board);
+      //  console.log(move);
+      
       this.placeMove(null, move.r, move.c);
+     
+      // setInterval(() => {
+      //   this.setState({ waitingTurn: false });
+      // }, 1000);
+
       this.setState({ waitingTurn: false });
     }
   };
@@ -253,11 +225,24 @@ class TicTacToeGame extends Component {
         }
       }
     }
+    return false;
   };
+
+  handleHover = (e) => {
+    let space = e.target;
+    let r = space.getAttribute("data-r");
+    let c = space.getAttribute("data-c");
+    let spaces = _.union(document.querySelectorAll(`[data-r="${r}"]`), document.querySelectorAll(`[data-c="${c}"]`))
+    this.state.highLightSpaces.map(space => space.classList.remove('hover'));
+    spaces.map( space => space.classList.add('hover'));
+    this.setState({highLightSpaces: spaces});
+  }
 
   initBoard = () => {
     return (
-      <div className="board">
+      <div className="board" 
+        onMouseOver={(e)=>{this.handleHover(e)}} 
+      >
         {[0, 1, 2].map((r) => {
           return (
             <div key={r} className="board-row">
@@ -282,7 +267,7 @@ class TicTacToeGame extends Component {
 
   onResetClick = (e) => {
     e.preventDefault();
-  
+
     this.setState(() => {
       return _.cloneDeep(this.initalState);
     });
@@ -291,7 +276,15 @@ class TicTacToeGame extends Component {
   render() {
     return (
       <Container className="mt-5">
+        <AlertMessage
+          classes="mb-3"
+          spinner={true}
+          value={this.state.message}
+          waitingTurn={this.state.waitingTurn}
+          gameEnded={this.state.gameEnded}
+        />
         {this.initBoard()}
+        <AlertMessage classes="mt-3" value={this.state.winner} />
         <Button
           className="mt-3"
           type="submit"

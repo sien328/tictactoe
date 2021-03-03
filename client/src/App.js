@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Switch } from "react-router-dom";
 import "./App.css";
 import TicTacToeGame from "./components/tic-tac-toe-game";
 import Authorize from "./components/authorize";
+import {ProtectedRoute} from "./components/protected-route";
 
 class App extends Component {
   state = {};
@@ -15,7 +16,7 @@ class App extends Component {
           <header className="App-header"></header>
           <Switch>
             <Route exact path="/" component={Authorize} />
-            <Route exact path="/tictactoe" component={TicTacToeGame} />
+            <ProtectedRoute exact path="/tictactoe" component={TicTacToeGame} />
             <Route exact path="*" component={() => "404 NOT FOUND"} />
           </Switch>
         </div>
